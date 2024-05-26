@@ -8,6 +8,8 @@ import (
 type Node interface {
 	Start() error
 	GetClient() rpcclient.Client
+	Stop() error
+	IsRunning() bool
 }
 
 func NewNode(logger log.Logger) (Node, error) {

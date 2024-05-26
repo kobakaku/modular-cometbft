@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cometbft/cometbft/libs/log"
-
+	cometos "github.com/cometbft/cometbft/libs/os"
 	"github.com/kobakaku/modular-cometbft/node"
 	"github.com/kobakaku/modular-cometbft/rpc"
 )
@@ -34,13 +34,20 @@ var RunNodeCmd = &cobra.Command{
 			return fmt.Errorf("failed to start node: %v", err)
 		}
 
-		logger.Info("Started node")
+		// Stop upon receiving SIGTERM or CTRL-C.
+		cometos.TrapSignal(logger, func() {
+			if node.IsRunning() {
+				if err := node.Stop(); err != nil {
+					logger.Error("unable to stop the node", "error", err)
+				}
+			}
+		})
 
 		if true {
 			// Block forever to force user to stop node
 			select {}
 		}
 
-		return fmt.Errorf("TODO: should stop node")
+		return node.Stop()
 	},
 }
