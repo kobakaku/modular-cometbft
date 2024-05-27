@@ -8,8 +8,13 @@ import (
 
 	"github.com/cometbft/cometbft/libs/log"
 	cometos "github.com/cometbft/cometbft/libs/os"
+	"github.com/kobakaku/modular-cometbft/config"
 	"github.com/kobakaku/modular-cometbft/node"
 	"github.com/kobakaku/modular-cometbft/rpc"
+)
+
+var (
+	nodeConfig = config.DefaultNodeConfig
 )
 
 var RunNodeCmd = &cobra.Command{
@@ -19,7 +24,7 @@ var RunNodeCmd = &cobra.Command{
 		// Initialize logging
 		logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 
-		node, err := node.NewNode(logger)
+		node, err := node.NewNode(nodeConfig, logger)
 		if err != nil {
 			return fmt.Errorf("failed to create new node: %v", err)
 		}
