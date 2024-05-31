@@ -18,6 +18,6 @@ func NewNode(conf config.NodeConfig, logger log.Logger) (Node, error) {
 	if conf.Light {
 		return newLightNode(logger)
 	} else {
-		return newFullNode(logger)
+		return newFullNode(conf, logger)
 	}
 }

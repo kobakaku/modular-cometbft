@@ -8,8 +8,8 @@ type DAClient struct {
 	DA goDA.DA
 }
 
-func NewDAClient(da goDA.DA) DAClient {
-	return DAClient{
+func NewDAClient(da goDA.DA) *DAClient {
+	return &DAClient{
 		DA: da,
 	}
 }

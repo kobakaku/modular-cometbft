@@ -1,12 +1,16 @@
 package node
 
 import (
+	"fmt"
+
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cometbft/cometbft/libs/service"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	"github.com/kobakaku/modular-cometbft/block"
+	"github.com/kobakaku/modular-cometbft/config"
 	"github.com/kobakaku/modular-cometbft/da"
 	"github.com/kobakaku/modular-cometbft/utils"
+	proxyda "github.com/rollkit/go-da/proxy"
 )
 
 var _ Node = &FullNode{}
@@ -21,10 +25,25 @@ type FullNode struct {
 	threadManager utils.ThreadManager
 }
 
-func newFullNode(logger log.Logger) (fn *FullNode, err error) {
-	node := &FullNode{}
+func newFullNode(nodeConfig config.NodeConfig, logger log.Logger) (fn *FullNode, err error) {
+	daClient, err := initDAClient(nodeConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	node := &FullNode{daClient: daClient}
+
 	node.BaseService = service.NewBaseService(logger, "FullNode", node)
+
 	return node, nil
+}
+
+func initDAClient(nodeConfig config.NodeConfig) (*da.DAClient, error) {
+	client, err := proxyda.NewClient(nodeConfig.DAAddress, nodeConfig.DAAuthToken)
+	if err != nil {
+		return nil, fmt.Errorf("error while establishing connection to DA layer: %w", err)
+	}
+	return da.NewDAClient(client), nil
 }
 
 func (fn *FullNode) OnStart() error {
