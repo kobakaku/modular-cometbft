@@ -5,11 +5,15 @@ import (
 )
 
 type DAClient struct {
-	DA goDA.DA
+	DA        goDA.DA
+	GasPrice  float64
+	Namespace goDA.Namespace
 }
 
-func NewDAClient(da goDA.DA) *DAClient {
+func NewDAClient(da goDA.DA, gasPrice float64, ns goDA.Namespace) *DAClient {
 	return &DAClient{
-		DA: da,
+		DA:        da,
+		GasPrice:  gasPrice,
+		Namespace: ns,
 	}
 }
