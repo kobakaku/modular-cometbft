@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -24,7 +25,7 @@ var RunNodeCmd = &cobra.Command{
 		// Initialize logging
 		logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 
-		node, err := node.NewNode(nodeConfig, logger)
+		node, err := node.NewNode(context.Background(), nodeConfig, logger)
 		if err != nil {
 			return fmt.Errorf("failed to create new node: %v", err)
 		}

@@ -27,13 +27,26 @@ type FullNode struct {
 	threadManager utils.ThreadManager
 }
 
-func newFullNode(nodeConfig config.NodeConfig, logger log.Logger) (fn *FullNode, err error) {
+func newFullNode(ctx context.Context, nodeConfig config.NodeConfig, logger log.Logger) (fn *FullNode, err error) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer func() {
+		// If there is an error, cancel the context
+		if err != nil {
+			cancel()
+		}
+	}()
+
 	daClient, err := initDAClient(nodeConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	node := &FullNode{daClient: daClient}
+	blockManager, err := initBlockManager(daClient, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	node := &FullNode{daClient: daClient, blockManager: blockManager, ctx: ctx}
 
 	node.BaseService = service.NewBaseService(logger, "FullNode", node)
 
@@ -50,10 +63,19 @@ func initDAClient(nodeConfig config.NodeConfig) (*da.DAClient, error) {
 	return da.NewDAClient(client, nodeConfig.DAGasPrice, namespace), nil
 }
 
+func initBlockManager(daClient *da.DAClient, logger log.Logger) (*block.Manager, error) {
+	blockManager, err := block.NewManager(daClient, logger)
+	if err != nil {
+		return nil, fmt.Errorf("error while initializeing BlockManger: %w", err)
+	}
+	return blockManager, nil
+}
+
 func (fn *FullNode) OnStart() error {
 	fn.Logger.Info("starting full node...")
 
-	fn.threadManager.Go(func() { fn.blockManager.BlockSubmissionLoop(fn.ctx) })
+	fn.blockManager.BlockSubmissionLoop(fn.ctx)
+	// fn.threadManager.Go(func() { fn.blockManager.BlockSubmissionLoop(fn.ctx) })
 	fn.threadManager.Go(func() { fn.blockManager.AggregationLoop() })
 
 	return nil

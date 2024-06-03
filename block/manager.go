@@ -10,9 +10,17 @@ import (
 )
 
 type Manager struct {
-	daClient da.DAClient
+	daClient *da.DAClient
 
 	logger log.Logger
+}
+
+func NewManager(daClient *da.DAClient, logger log.Logger) (*Manager, error) {
+	mgr := &Manager{
+		daClient: daClient,
+		logger:   logger,
+	}
+	return mgr, nil
 }
 
 // BlockSubmissionLoop is responsible for submitting blocks to the DA layer.
@@ -33,10 +41,15 @@ func (m *Manager) submitBlocksToDA(ctx context.Context) error {
 	var (
 		blobs [][]byte
 	)
+
+	ctx, cancel := context.WithTimeout(ctx, 10000000)
+	defer cancel()
+
 	ids, err := m.daClient.DA.Submit(ctx, blobs, m.daClient.GasPrice, m.daClient.Namespace)
 	if err != nil {
 		return fmt.Errorf("error while submitting blocks to DA layer: %w", err)
 	}
+
 	m.logger.Info("successfully submitted Rollkit blocks to DA layer", "ids", ids)
 	return nil
 }
