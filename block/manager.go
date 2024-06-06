@@ -26,10 +26,24 @@ func NewManager(daClient *da.DAClient, logger log.Logger) (*Manager, error) {
 
 // BlockSubmissionLoop is responsible for submitting blocks to the DA layer.
 func (m *Manager) BlockSubmissionLoop(ctx context.Context) {
-	err := m.submitBlocksToDA(ctx)
-	if err != nil {
-		m.logger.Error("error while submitting block to DA", "error", err)
+	// TODO: 適切なブロック送信間隔を考える (現状 30s)
+	timer := time.NewTicker(30_000000000)
+	defer timer.Stop()
+
+	for {
+		select {
+		// TODO: ここの分岐は必要か確認
+		case <-ctx.Done():
+			return
+		case <-timer.C:
+		}
+
+		err := m.submitBlocksToDA(ctx)
+		if err != nil {
+			m.logger.Error("error while submitting block to DA", "error", err)
+		}
 	}
+
 }
 
 // AggregationLoop is responsible for aggregating transactions into rollup blocks.
