@@ -57,12 +57,8 @@ var RunNodeCmd = &cobra.Command{
 			}
 		})
 
-		if true {
-			// Block forever to force user to stop node
-			select {}
-		}
-
-		return nil
+		// Block forever to force user to stop node
+		select {}
 	},
 }
 

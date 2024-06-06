@@ -3,6 +3,7 @@ package block
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/cometbft/cometbft/libs/log"
 
@@ -32,8 +33,31 @@ func (m *Manager) BlockSubmissionLoop(ctx context.Context) {
 }
 
 // AggregationLoop is responsible for aggregating transactions into rollup blocks.
-func (m *Manager) AggregationLoop() {
+func (m *Manager) AggregationLoop(ctx context.Context) {
+	timer := time.NewTimer(0)
+	defer timer.Stop()
 
+	for {
+		select {
+		// TODO: ここの分岐は必要か確認
+		case <-ctx.Done():
+			return
+		case <-timer.C:
+		}
+		m.publishBlock()
+
+		// TODO: 適切なブロック生成間隔を考える (現状 10s)
+		timer.Reset(10_000000000)
+	}
+}
+
+func (m *Manager) publishBlock() error {
+	height := 1
+	m.logger.Info("Creating and publishing block", "height", height)
+
+	// TODO: Blockを作成し、保存する
+
+	return nil
 }
 
 func (m *Manager) submitBlocksToDA(ctx context.Context) error {

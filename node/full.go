@@ -74,9 +74,8 @@ func initBlockManager(daClient *da.DAClient, logger log.Logger) (*block.Manager,
 func (fn *FullNode) OnStart() error {
 	fn.Logger.Info("starting full node...")
 
-	fn.blockManager.BlockSubmissionLoop(fn.ctx)
-	// fn.threadManager.Go(func() { fn.blockManager.BlockSubmissionLoop(fn.ctx) })
-	fn.threadManager.Go(func() { fn.blockManager.AggregationLoop() })
+	fn.threadManager.Go(func() { fn.blockManager.AggregationLoop(fn.ctx) })
+	fn.threadManager.Go(func() { fn.blockManager.BlockSubmissionLoop(fn.ctx) })
 
 	return nil
 }
