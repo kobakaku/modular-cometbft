@@ -10,6 +10,7 @@ import (
 	"github.com/kobakaku/modular-cometbft/block"
 	"github.com/kobakaku/modular-cometbft/config"
 	"github.com/kobakaku/modular-cometbft/da"
+	"github.com/kobakaku/modular-cometbft/store"
 	"github.com/kobakaku/modular-cometbft/utils"
 	proxyda "github.com/rollkit/go-da/proxy"
 )
@@ -41,7 +42,9 @@ func newFullNode(ctx context.Context, nodeConfig config.NodeConfig, logger log.L
 		return nil, err
 	}
 
-	blockManager, err := initBlockManager(daClient, logger)
+	store := store.New()
+
+	blockManager, err := initBlockManager(daClient, store, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -63,8 +66,8 @@ func initDAClient(nodeConfig config.NodeConfig) (*da.DAClient, error) {
 	return da.NewDAClient(client, nodeConfig.DAGasPrice, namespace), nil
 }
 
-func initBlockManager(daClient *da.DAClient, logger log.Logger) (*block.Manager, error) {
-	blockManager, err := block.NewManager(daClient, logger)
+func initBlockManager(daClient *da.DAClient, store *store.Store, logger log.Logger) (*block.Manager, error) {
+	blockManager, err := block.NewManager(daClient, store, logger)
 	if err != nil {
 		return nil, fmt.Errorf("error while initializeing BlockManger: %w", err)
 	}

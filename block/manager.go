@@ -8,17 +8,20 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 
 	"github.com/kobakaku/modular-cometbft/da"
+	"github.com/kobakaku/modular-cometbft/store"
 )
 
 type Manager struct {
 	daClient *da.DAClient
+	store    *store.Store
 
 	logger log.Logger
 }
 
-func NewManager(daClient *da.DAClient, logger log.Logger) (*Manager, error) {
+func NewManager(daClient *da.DAClient, store *store.Store, logger log.Logger) (*Manager, error) {
 	mgr := &Manager{
 		daClient: daClient,
+		store:    store,
 		logger:   logger,
 	}
 	return mgr, nil
@@ -66,8 +69,9 @@ func (m *Manager) AggregationLoop(ctx context.Context) {
 }
 
 func (m *Manager) publishBlock() error {
-	height := 1
-	m.logger.Info("Creating and publishing block", "height", height)
+	height := m.store.Height()
+	newHeight := height + 1
+	m.logger.Info("Creating and publishing block", "height", newHeight)
 
 	// TODO: Blockを作成し、保存する
 
