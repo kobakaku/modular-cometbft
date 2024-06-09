@@ -71,9 +71,15 @@ func (m *Manager) AggregationLoop(ctx context.Context) {
 func (m *Manager) publishBlock() error {
 	height := m.store.Height()
 	newHeight := height + 1
-	m.logger.Info("Creating and publishing block", "height", newHeight)
 
-	// TODO: Blockを作成し、保存する
+	m.store.SetHeight(newHeight)
+
+	m.logger.Debug("Creating and publishing block", "height", newHeight)
+	// TODO: Blockを作成する
+	// TODO: DBにBlockを保存する
+	// TODO: DA layerにBlockを送信する
+
+	m.logger.Info("successfully proposed block", "height", newHeight)
 
 	return nil
 }

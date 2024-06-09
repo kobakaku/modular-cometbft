@@ -1,20 +1,19 @@
 package store
 
+import "sync/atomic"
+
 type Store struct {
-	// TODO: heightが非同期に処理できていないから、毎回初期化されてしまう。
-	height uint64
+	height atomic.Uint64
 }
 
 func New() *Store {
-	return &Store{
-		height: 0,
-	}
+	return &Store{}
 }
 
 func (s *Store) SetHeight(height uint64) {
-	s.height = height
+	s.height.Store(height)
 }
 
 func (s *Store) Height() uint64 {
-	return s.height
+	return s.height.Load()
 }
