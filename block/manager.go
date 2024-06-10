@@ -9,16 +9,17 @@ import (
 
 	"github.com/kobakaku/modular-cometbft/da"
 	"github.com/kobakaku/modular-cometbft/store"
+	"github.com/kobakaku/modular-cometbft/types"
 )
 
 type Manager struct {
 	daClient *da.DAClient
-	store    *store.Store
+	store    store.Store
 
 	logger log.Logger
 }
 
-func NewManager(daClient *da.DAClient, store *store.Store, logger log.Logger) (*Manager, error) {
+func NewManager(daClient *da.DAClient, store store.Store, logger log.Logger) (*Manager, error) {
 	mgr := &Manager{
 		daClient: daClient,
 		store:    store,
@@ -72,12 +73,19 @@ func (m *Manager) publishBlock() error {
 	height := m.store.Height()
 	newHeight := height + 1
 
+	_, err := m.store.GetBlock(newHeight)
+	if err != nil {
+		m.logger.Error("error while getting block", "error", err)
+	}
+
 	m.store.SetHeight(newHeight)
 
 	m.logger.Debug("Creating and publishing block", "height", newHeight)
-	// TODO: Blockを作成する
+
+	block, err := m.createBlock(newHeight)
+	m.logger.Debug("block info", "num_txs", len(block.Txs))
+
 	// TODO: DBにBlockを保存する
-	// TODO: DA layerにBlockを送信する
 
 	m.logger.Info("successfully proposed block", "height", newHeight)
 
@@ -97,7 +105,17 @@ func (m *Manager) submitBlocksToDA(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error while submitting blocks to DA layer: %w", err)
 	}
+	if len(ids) == 0 {
+		m.logger.Error("failed to submit blocks: unexpected len(ids): 0")
+	}
 
 	m.logger.Info("successfully submitted Rollkit blocks to DA layer", "ids", ids)
 	return nil
+}
+
+func (m *Manager) createBlock(height uint64) (*types.Block, error) {
+	// TODO: mempoolからblockを生成する
+	return &types.Block{
+		Txs: []types.Tx{},
+	}, nil
 }

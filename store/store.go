@@ -1,19 +1,32 @@
 package store
 
-import "sync/atomic"
+import (
+	"sync/atomic"
 
-type Store struct {
+	"github.com/kobakaku/modular-cometbft/types"
+)
+
+type DefaultStore struct {
+	blocks []types.Block
 	height atomic.Uint64
 }
 
-func New() *Store {
-	return &Store{}
+var _ Store = &DefaultStore{}
+
+func New() *DefaultStore {
+	return &DefaultStore{}
 }
 
-func (s *Store) SetHeight(height uint64) {
+func (s *DefaultStore) SetHeight(height uint64) {
 	s.height.Store(height)
 }
 
-func (s *Store) Height() uint64 {
+func (s *DefaultStore) Height() uint64 {
 	return s.height.Load()
+}
+
+func (s *DefaultStore) GetBlock(height uint64) (*types.Block, error) {
+	return &types.Block{
+		Txs: []types.Tx{},
+	}, nil
 }

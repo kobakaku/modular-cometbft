@@ -66,7 +66,7 @@ func initDAClient(nodeConfig config.NodeConfig) (*da.DAClient, error) {
 	return da.NewDAClient(client, nodeConfig.DAGasPrice, namespace), nil
 }
 
-func initBlockManager(daClient *da.DAClient, store *store.Store, logger log.Logger) (*block.Manager, error) {
+func initBlockManager(daClient *da.DAClient, store store.Store, logger log.Logger) (*block.Manager, error) {
 	blockManager, err := block.NewManager(daClient, store, logger)
 	if err != nil {
 		return nil, fmt.Errorf("error while initializeing BlockManger: %w", err)
