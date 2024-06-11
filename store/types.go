@@ -7,5 +7,7 @@ type Store interface {
 
 	Height() uint64
 
+	SaveBlock(block *types.Block) error
+
 	GetBlock(height uint64) (*types.Block, error)
 }

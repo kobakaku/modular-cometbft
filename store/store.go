@@ -1,13 +1,14 @@
 package store
 
 import (
+	"fmt"
 	"sync/atomic"
 
 	"github.com/kobakaku/modular-cometbft/types"
 )
 
 type DefaultStore struct {
-	blocks []types.Block
+	blocks []*types.Block
 	height atomic.Uint64
 }
 
@@ -25,8 +26,20 @@ func (s *DefaultStore) Height() uint64 {
 	return s.height.Load()
 }
 
+// SaveBlock adds block to the store.
+func (s *DefaultStore) SaveBlock(block *types.Block) error {
+	s.blocks = append(s.blocks, block)
+	return nil
+}
+
+// GetBlock returns block at given height.
+// TODO: indexing height→hash, and store blocks by hash.
 func (s *DefaultStore) GetBlock(height uint64) (*types.Block, error) {
-	return &types.Block{
-		Txs: []types.Tx{},
-	}, nil
+	index := height - 1
+	if uint64(len(s.blocks)) == index {
+		return nil, fmt.Errorf("error getting block")
+	} else {
+		block := s.blocks[index]
+		return block, nil
+	}
 }

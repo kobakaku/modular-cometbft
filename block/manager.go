@@ -8,6 +8,7 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 
 	"github.com/kobakaku/modular-cometbft/da"
+	"github.com/kobakaku/modular-cometbft/state"
 	"github.com/kobakaku/modular-cometbft/store"
 	"github.com/kobakaku/modular-cometbft/types"
 )
@@ -15,14 +16,18 @@ import (
 type Manager struct {
 	daClient *da.DAClient
 	store    store.Store
+	executor *state.BlockExecutor
 
 	logger log.Logger
 }
 
 func NewManager(daClient *da.DAClient, store store.Store, logger log.Logger) (*Manager, error) {
+	exec := state.NewBlockExecutor(logger)
+
 	mgr := &Manager{
 		daClient: daClient,
 		store:    store,
+		executor: exec,
 		logger:   logger,
 	}
 	return mgr, nil
@@ -73,17 +78,25 @@ func (m *Manager) publishBlock() error {
 	height := m.store.Height()
 	newHeight := height + 1
 
-	_, err := m.store.GetBlock(newHeight)
-	if err != nil {
-		m.logger.Error("error while getting block", "error", err)
+	var block *types.Block
+
+	block, err := m.store.GetBlock(newHeight)
+	if block != nil {
+		m.logger.Error("error getting wrong block", "height", newHeight)
+	} else {
+		m.logger.Debug("creating block info", "num_txs", len(block.Txs))
+		block, err = m.createBlock(newHeight)
+		if err != nil {
+			return err
+		}
+
+		m.store.SaveBlock(block)
+		m.store.SetHeight(newHeight)
 	}
 
-	m.store.SetHeight(newHeight)
+	m.applyBlock(block)
 
 	m.logger.Debug("Creating and publishing block", "height", newHeight)
-
-	block, err := m.createBlock(newHeight)
-	m.logger.Debug("block info", "num_txs", len(block.Txs))
 
 	// TODO: DBにBlockを保存する
 
@@ -118,4 +131,12 @@ func (m *Manager) createBlock(height uint64) (*types.Block, error) {
 	return &types.Block{
 		Txs: []types.Tx{},
 	}, nil
+}
+
+func (m *Manager) applyBlock(block *types.Block) (*types.Block, error) {
+	err := m.executor.ApplyBlock(block)
+	if err != nil {
+		return nil, fmt.Errorf("error while applying blocks: %w", err)
+	}
+	return block, nil
 }
