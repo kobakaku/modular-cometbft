@@ -67,30 +67,31 @@ func (m *Manager) AggregationLoop(ctx context.Context) {
 			return
 		case <-timer.C:
 		}
-		m.publishBlock()
+		m.publishBlock(ctx)
 
 		// TODO: 適切なブロック生成間隔を考える (現状 10s)
 		timer.Reset(10_000000000)
 	}
 }
 
-func (m *Manager) publishBlock() error {
+func (m *Manager) publishBlock(ctx context.Context) error {
 	height := m.store.Height()
 	newHeight := height + 1
 
 	var block *types.Block
 
-	block, err := m.store.GetBlock(newHeight)
+	block, err := m.store.GetBlock(ctx, newHeight)
 	if block != nil {
 		m.logger.Error("error getting wrong block", "height", newHeight)
 	} else {
-		m.logger.Debug("creating block info", "num_txs", len(block.Txs))
+		m.logger.Debug("creating new block")
 		block, err = m.createBlock(newHeight)
+
 		if err != nil {
 			return err
 		}
 
-		m.store.SaveBlock(block)
+		m.store.SaveBlock(ctx, block)
 		m.store.SetHeight(newHeight)
 	}
 
@@ -129,7 +130,8 @@ func (m *Manager) submitBlocksToDA(ctx context.Context) error {
 func (m *Manager) createBlock(height uint64) (*types.Block, error) {
 	// TODO: mempoolからblockを生成する
 	return &types.Block{
-		Txs: []types.Tx{},
+		Header: types.Header{BaseHeader: types.BaseHeader{Height: height}},
+		Txs:    []types.Tx{},
 	}, nil
 }
 

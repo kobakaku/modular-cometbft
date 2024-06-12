@@ -7,6 +7,7 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cometbft/cometbft/libs/service"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
+	"github.com/ipfs/go-datastore"
 	"github.com/kobakaku/modular-cometbft/block"
 	"github.com/kobakaku/modular-cometbft/config"
 	"github.com/kobakaku/modular-cometbft/da"
@@ -42,7 +43,9 @@ func newFullNode(ctx context.Context, nodeConfig config.NodeConfig, logger log.L
 		return nil, err
 	}
 
-	store := store.New()
+	mainKV, err := initKV("main")
+
+	store := store.New(mainKV)
 
 	blockManager, err := initBlockManager(daClient, store, logger)
 	if err != nil {
@@ -64,6 +67,10 @@ func initDAClient(nodeConfig config.NodeConfig) (*da.DAClient, error) {
 		return nil, fmt.Errorf("error while establishing connection to DA layer: %w", err)
 	}
 	return da.NewDAClient(client, nodeConfig.DAGasPrice, namespace), nil
+}
+
+func initKV(dbName string) (datastore.TxnDatastore, error) {
+	return store.NewKVStore(dbName)
 }
 
 func initBlockManager(daClient *da.DAClient, store store.Store, logger log.Logger) (*block.Manager, error) {

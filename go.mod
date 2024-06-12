@@ -8,12 +8,16 @@ require (
 )
 
 require (
+	github.com/dgraph-io/badger/v4 v4.2.0 // indirect
 	github.com/filecoin-project/go-jsonrpc v0.3.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/google/flatbuffers v1.12.1 // indirect
 	github.com/google/uuid v1.4.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
-	github.com/ipfs/go-log/v2 v2.0.8 // indirect
+	github.com/ipfs/go-log/v2 v2.5.0 // indirect
+	github.com/jbenet/goprocess v0.1.4 // indirect
+	github.com/mattn/go-isatty v0.0.17 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
@@ -43,6 +47,8 @@ require (
 	github.com/google/btree v1.1.2 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/ipfs/go-datastore v0.6.0
+	github.com/ipfs/go-ds-badger4 v0.1.5
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.0 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect

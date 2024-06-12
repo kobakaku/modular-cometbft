@@ -1,7 +1,8 @@
 package types
 
 type Block struct {
-	Txs []Tx
+	Header Header
+	Txs    []Tx
 }
 
 // TODO: []byteで表現する
@@ -11,5 +12,9 @@ type Tx struct {
 }
 
 func New() *Block {
-	return &Block{}
+	return new(Block)
+}
+
+func (b *Block) Height() uint64 {
+	return b.Header.BaseHeader.Height
 }
