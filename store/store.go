@@ -39,22 +39,19 @@ func (s *DefaultStore) SaveBlock(ctx context.Context, block *types.Block) error 
 		return fmt.Errorf("failed to marshal Block to binary form: %w", err)
 	}
 
-	txn, err := s.db.NewTransaction(ctx, false)
+	s.db.Put(ctx, ds.NewKey(getBlockKey(block.Height())), blockBlob)
 	if err != nil {
 		return fmt.Errorf("failed to create a new batch for transaction: %w", err)
 	}
-
-	txn.Put(ctx, ds.NewKey(getBlockKey(block.Height())), blockBlob)
 
 	return nil
 }
 
 // GetBlock returns block at given height.
-// TODO: indexing height→hash, and store blocks by hash.
 func (s *DefaultStore) GetBlock(ctx context.Context, height uint64) (*types.Block, error) {
 	blockBlob, err := s.db.Get(ctx, ds.NewKey(getBlockKey(height)))
 	if err != nil {
-		return nil, fmt.Errorf("failed to get a block at ginen height: %w", err)
+		return nil, fmt.Errorf("failed to get a block at given height: %w", err)
 	}
 
 	block := new(types.Block)

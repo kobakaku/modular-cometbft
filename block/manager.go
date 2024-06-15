@@ -84,24 +84,32 @@ func (m *Manager) publishBlock(ctx context.Context) error {
 	if block != nil {
 		m.logger.Error("error getting wrong block", "height", newHeight)
 	} else {
-		m.logger.Debug("creating new block")
+		m.logger.Debug("Creating and publishing block", "height", newHeight)
 		block, err = m.createBlock(newHeight)
-
 		if err != nil {
 			return err
 		}
 
-		m.store.SaveBlock(ctx, block)
-		m.store.SetHeight(newHeight)
+		err = m.store.SaveBlock(ctx, block)
+		if err != nil {
+			m.logger.Error("error saving block", "height", err)
+			return fmt.Errorf("failed to save block: %w", err)
+		}
 	}
 
-	m.applyBlock(block)
+	block, err = m.applyBlock(block)
+	if err != nil {
+		m.logger.Error("error applying block")
+		return fmt.Errorf("failed to apply block: %w", err)
+	}
 
-	m.logger.Debug("Creating and publishing block", "height", newHeight)
+	m.store.SetHeight(newHeight)
 
-	// TODO: DBにBlockを保存する
-
-	m.logger.Info("successfully proposed block", "height", newHeight)
+	block, err = m.store.GetBlock(ctx, newHeight)
+	if err != nil {
+		m.logger.Error("getting", err)
+	}
+	m.logger.Info("successfully proposed block", "height", block.Header.BaseHeader.Height)
 
 	return nil
 }
@@ -131,7 +139,7 @@ func (m *Manager) createBlock(height uint64) (*types.Block, error) {
 	// TODO: mempoolからblockを生成する
 	return &types.Block{
 		Header: types.Header{BaseHeader: types.BaseHeader{Height: height}},
-		Txs:    []types.Tx{},
+		Txs:    []types.Tx{[]byte("TODO")},
 	}, nil
 }
 

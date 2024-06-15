@@ -5,11 +5,7 @@ type Block struct {
 	Txs    []Tx
 }
 
-// TODO: []byteで表現する
-// TODO: pendingしているTXはmempoolの中にいれる
-type Tx struct {
-	isPending bool
-}
+type Tx []byte
 
 func New() *Block {
 	return new(Block)
