@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cometbft/cometbft/proxy"
 
 	"github.com/kobakaku/modular-cometbft/da"
 	"github.com/kobakaku/modular-cometbft/state"
@@ -21,8 +22,8 @@ type Manager struct {
 	logger log.Logger
 }
 
-func NewManager(daClient *da.DAClient, store store.Store, logger log.Logger) (*Manager, error) {
-	exec := state.NewBlockExecutor(logger)
+func NewManager(daClient *da.DAClient, store store.Store, proxyApp proxy.AppConnConsensus, logger log.Logger) (*Manager, error) {
+	exec := state.NewBlockExecutor(proxyApp, logger)
 
 	mgr := &Manager{
 		daClient: daClient,

@@ -1,6 +1,8 @@
 package config
 
 type NodeConfig struct {
+	DBPath string
+
 	Light       bool
 	DAAddress   string
 	DAAuthToken string

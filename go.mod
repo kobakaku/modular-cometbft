@@ -13,15 +13,21 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/flatbuffers v1.12.1 // indirect
+	github.com/google/orderedcode v0.0.1 // indirect
 	github.com/google/uuid v1.4.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/ipfs/go-log/v2 v2.5.0 // indirect
 	github.com/jbenet/goprocess v0.1.4 // indirect
+	github.com/lib/pq v1.10.7 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
+	github.com/minio/highwayhash v1.0.2 // indirect
+	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
+	github.com/rs/cors v1.8.3 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
+	golang.org/x/sync v0.5.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 )
 

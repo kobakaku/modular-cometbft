@@ -3,17 +3,21 @@ package state
 import (
 	"github.com/cometbft/cometbft/libs/log"
 
+	"github.com/cometbft/cometbft/proxy"
+
 	"github.com/kobakaku/modular-cometbft/types"
 )
 
 // BlockExecutor creates and applies blocks and maintains state
 type BlockExecutor struct {
+	proxyApp proxy.AppConnConsensus
+
 	logger log.Logger
 }
 
 // NewBlockExecutor creates new instance of BlockExecutor.
-func NewBlockExecutor(logger log.Logger) *BlockExecutor {
-	return &BlockExecutor{logger: logger}
+func NewBlockExecutor(proxyApp proxy.AppConnConsensus, logger log.Logger) *BlockExecutor {
+	return &BlockExecutor{proxyApp: proxyApp, logger: logger}
 }
 
 // CreateBlock gets transactions from mempool and builds a block.

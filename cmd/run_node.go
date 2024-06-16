@@ -8,9 +8,12 @@ import (
 
 	"github.com/spf13/cobra"
 
+	cmcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/libs/log"
 	cometos "github.com/cometbft/cometbft/libs/os"
-	"github.com/kobakaku/modular-cometbft/config"
+	"github.com/cometbft/cometbft/proxy"
+
+	cfg "github.com/kobakaku/modular-cometbft/config"
 	"github.com/kobakaku/modular-cometbft/node"
 	"github.com/kobakaku/modular-cometbft/rpc"
 
@@ -19,7 +22,11 @@ import (
 )
 
 var (
-	nodeConfig = config.DefaultNodeConfig
+	// Initialize the config with the cometBFT defaults
+	config = cmcfg.DefaultConfig()
+
+	// Initialize the node config
+	nodeConfig = cfg.DefaultNodeConfig
 )
 
 var RunNodeCmd = &cobra.Command{
@@ -29,6 +36,8 @@ var RunNodeCmd = &cobra.Command{
 		// Initialize logging
 		logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 
+		metrics := node.DefaultMetricsProvider(cmcfg.DefaultInstrumentationConfig())
+
 		// Start Mock DA server
 		srv, err := startMockDAServer(context.Background())
 		if err != nil {
@@ -37,7 +46,7 @@ var RunNodeCmd = &cobra.Command{
 		defer func() { srv.Stop(cmd.Context()) }()
 
 		// Start p2p node
-		node, err := node.NewNode(context.Background(), nodeConfig, logger)
+		node, err := node.NewNode(context.Background(), nodeConfig, proxy.DefaultClientCreator(config.ProxyApp, config.ABCI, nodeConfig.DBPath), metrics, logger)
 		if err != nil {
 			return fmt.Errorf("failed to create new node: %v", err)
 		}
@@ -54,8 +63,10 @@ var RunNodeCmd = &cobra.Command{
 
 		// Stop upon receiving SIGTERM or CTRL-C.
 		cometos.TrapSignal(logger, func() {
-			if err := node.Stop(); err != nil {
-				logger.Error("unable to stop the node", "error", err)
+			if node.IsRunning() {
+				if err := node.Stop(); err != nil {
+					logger.Error("unable to stop the node", "error", err)
+				}
 			}
 		})
 
