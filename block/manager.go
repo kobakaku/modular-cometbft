@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cometbft/cometbft/proxy"
 
@@ -102,14 +103,15 @@ func (m *Manager) publishBlock(ctx context.Context) error {
 		}
 	}
 
-	block, err = m.applyBlock(ctx, block)
+	resp, err := m.applyBlock(ctx, block)
 	if err != nil {
 		return err
 	}
 
+	// Update the stored height before submitting to the DA layer and committing to the DB.
 	m.store.SetHeight(newHeight)
 
-	_, err = m.executor.Commit(ctx)
+	_, _, err = m.executor.Commit(ctx, block, resp)
 	if err != nil {
 		return err
 	}
@@ -152,10 +154,10 @@ func (m *Manager) createBlock(height uint64) (*types.Block, error) {
 	}, nil
 }
 
-func (m *Manager) applyBlock(ctx context.Context, block *types.Block) (*types.Block, error) {
-	err := m.executor.ApplyBlock(ctx, block)
+func (m *Manager) applyBlock(ctx context.Context, block *types.Block) (*abci.ResponseFinalizeBlock, error) {
+	resp, err := m.executor.ApplyBlock(ctx, block)
 	if err != nil {
 		return nil, fmt.Errorf("error while applying blocks: %w", err)
 	}
-	return block, nil
+	return resp, nil
 }

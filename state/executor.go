@@ -24,25 +24,27 @@ func NewBlockExecutor(proxyApp proxy.AppConnConsensus, logger log.Logger) *Block
 
 // CreateBlock gets transactions from mempool and builds a block.
 func (be *BlockExecutor) CreateBlock() error {
+	// TODO: mempoolからtransactionを取得し、blockを作成する
 	return nil
 }
 
 // ApplyBlock executes the block
-func (be *BlockExecutor) ApplyBlock(ctx context.Context, block *types.Block) error {
+func (be *BlockExecutor) ApplyBlock(ctx context.Context, block *types.Block) (*abci.ResponseFinalizeBlock, error) {
 	// This makes calls to the AppClient
-	_, err := be.execute(ctx, block)
+	resp, err := be.execute(ctx, block)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return resp, nil
 }
 
-func (be *BlockExecutor) Commit(ctx context.Context) (int64, error) {
-	respCommit, err := be.proxyApp.Commit(ctx)
+// Commit commits the block
+func (be *BlockExecutor) Commit(ctx context.Context, block *types.Block, resp *abci.ResponseFinalizeBlock) ([]byte, int64, error) {
+	commitResp, err := be.proxyApp.Commit(ctx)
 	if err != nil {
-		return 0, err
+		return nil, 0, err
 	}
-	return respCommit.RetainHeight, nil
+	return resp.AppHash, commitResp.RetainHeight, nil
 }
 
 func (be *BlockExecutor) execute(ctx context.Context, block *types.Block) (*abci.ResponseFinalizeBlock, error) {
