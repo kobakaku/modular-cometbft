@@ -1,8 +1,10 @@
 package state
 
 import (
-	"github.com/cometbft/cometbft/libs/log"
+	"context"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cometbft/cometbft/proxy"
 
 	"github.com/kobakaku/modular-cometbft/types"
@@ -26,17 +28,28 @@ func (be *BlockExecutor) CreateBlock() error {
 }
 
 // ApplyBlock executes the block
-func (be *BlockExecutor) ApplyBlock(block *types.Block) error {
+func (be *BlockExecutor) ApplyBlock(ctx context.Context, block *types.Block) error {
 	// This makes calls to the AppClient
-	err := be.execute(block)
+	_, err := be.execute(ctx, block)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (be *BlockExecutor) execute(block *types.Block) error {
-	// TODO: TXを実行する
+func (be *BlockExecutor) Commit(ctx context.Context) (int64, error) {
+	respCommit, err := be.proxyApp.Commit(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return respCommit.RetainHeight, nil
+}
+
+func (be *BlockExecutor) execute(ctx context.Context, block *types.Block) (*abci.ResponseFinalizeBlock, error) {
+	resp, err := be.proxyApp.FinalizeBlock(ctx, &abci.RequestFinalizeBlock{})
+	if err != nil {
+		return nil, err
+	}
 	be.logger.Debug("executed block", "num_txs", len(block.Txs))
-	return nil
+	return resp, nil
 }

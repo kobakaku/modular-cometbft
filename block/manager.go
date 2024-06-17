@@ -68,7 +68,10 @@ func (m *Manager) AggregationLoop(ctx context.Context) {
 			return
 		case <-timer.C:
 		}
-		m.publishBlock(ctx)
+		err := m.publishBlock(ctx)
+		if err != nil {
+			m.logger.Error("error while publishing block", "error", err)
+		}
 
 		// TODO: 適切なブロック生成間隔を考える (現状 10s)
 		timer.Reset(10_000000000)
@@ -81,9 +84,10 @@ func (m *Manager) publishBlock(ctx context.Context) error {
 
 	var block *types.Block
 
-	block, err := m.store.GetBlock(ctx, newHeight)
+	pendingBlock, err := m.store.GetBlock(ctx, newHeight)
 	if block != nil {
-		m.logger.Error("error getting wrong block", "height", newHeight)
+		m.logger.Info("Using pending block", "height", newHeight)
+		block = pendingBlock
 	} else {
 		m.logger.Debug("Creating and publishing block", "height", newHeight)
 		block, err = m.createBlock(newHeight)
@@ -98,17 +102,21 @@ func (m *Manager) publishBlock(ctx context.Context) error {
 		}
 	}
 
-	block, err = m.applyBlock(block)
+	block, err = m.applyBlock(ctx, block)
 	if err != nil {
-		m.logger.Error("error applying block")
-		return fmt.Errorf("failed to apply block: %w", err)
+		return err
 	}
 
 	m.store.SetHeight(newHeight)
 
+	_, err = m.executor.Commit(ctx)
+	if err != nil {
+		return err
+	}
+
 	block, err = m.store.GetBlock(ctx, newHeight)
 	if err != nil {
-		m.logger.Error("getting", err)
+		return err
 	}
 	m.logger.Info("successfully proposed block", "height", block.Header.BaseHeader.Height)
 
@@ -144,8 +152,8 @@ func (m *Manager) createBlock(height uint64) (*types.Block, error) {
 	}, nil
 }
 
-func (m *Manager) applyBlock(block *types.Block) (*types.Block, error) {
-	err := m.executor.ApplyBlock(block)
+func (m *Manager) applyBlock(ctx context.Context, block *types.Block) (*types.Block, error) {
+	err := m.executor.ApplyBlock(ctx, block)
 	if err != nil {
 		return nil, fmt.Errorf("error while applying blocks: %w", err)
 	}

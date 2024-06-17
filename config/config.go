@@ -11,6 +11,8 @@ type NodeConfig struct {
 }
 
 var DefaultNodeConfig = NodeConfig{
+	DBPath: "data",
+
 	Light:       false,
 	DAAddress:   "http://localhost:26658",
 	DAGasPrice:  0,

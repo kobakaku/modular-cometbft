@@ -45,7 +45,7 @@ func newFullNode(ctx context.Context, nodeConfig config.NodeConfig, clientCreato
 	// TODO: genesis configでchain_idを指定する
 	abciMetrics := metricsProveder("CHAIN_ID")
 
-	proxyApp, err := initProxyApp(clientCreator, abciMetrics)
+	proxyApp, err := initProxyApp(clientCreator, logger, abciMetrics)
 	if err != nil {
 		return nil, err
 	}
@@ -71,12 +71,12 @@ func newFullNode(ctx context.Context, nodeConfig config.NodeConfig, clientCreato
 	return node, nil
 }
 
-func initProxyApp(clientCreator proxy.ClientCreator, metrics *proxy.Metrics) (proxy.AppConns, error) {
+func initProxyApp(clientCreator proxy.ClientCreator, logger log.Logger, metrics *proxy.Metrics) (proxy.AppConns, error) {
 	proxyApp := proxy.NewAppConns(clientCreator, metrics)
-	// TODO: proxyのエラー修正
-	// if err := proxyApp.Start(); err != nil {
-	// 	return nil, fmt.Errorf("error while starting proxy app connections", err)
-	// }
+	proxyApp.SetLogger(logger.With("module", "proxy"))
+	if err := proxyApp.Start(); err != nil {
+		return nil, fmt.Errorf("error while starting proxy app connections", err)
+	}
 	return proxyApp, nil
 }
 

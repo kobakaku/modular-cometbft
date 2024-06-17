@@ -36,7 +36,7 @@ var RunNodeCmd = &cobra.Command{
 		// Initialize logging
 		logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 
-		metrics := node.DefaultMetricsProvider(cmcfg.DefaultInstrumentationConfig())
+		metricsProvider := node.DefaultMetricsProvider(cmcfg.DefaultInstrumentationConfig())
 
 		// Start Mock DA server
 		srv, err := startMockDAServer(context.Background())
@@ -45,8 +45,11 @@ var RunNodeCmd = &cobra.Command{
 		}
 		defer func() { srv.Stop(cmd.Context()) }()
 
+		// use noop proxy app by default
+		config.ProxyApp = "noop"
+
 		// Start p2p node
-		node, err := node.NewNode(context.Background(), nodeConfig, proxy.DefaultClientCreator(config.ProxyApp, config.ABCI, nodeConfig.DBPath), metrics, logger)
+		node, err := node.NewNode(context.Background(), nodeConfig, proxy.DefaultClientCreator(config.ProxyApp, config.ABCI, nodeConfig.DBPath), metricsProvider, logger)
 		if err != nil {
 			return fmt.Errorf("failed to create new node: %v", err)
 		}
@@ -55,7 +58,7 @@ var RunNodeCmd = &cobra.Command{
 		}
 
 		// Start RPC server
-		server := rpc.NewServer(logger)
+		server := rpc.NewServer(node, logger)
 		err = server.Start()
 		if err != nil {
 			return fmt.Errorf("failed to launch rpc server: %v", err)
