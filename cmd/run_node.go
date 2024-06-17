@@ -58,7 +58,7 @@ var RunNodeCmd = &cobra.Command{
 		}
 
 		// Start RPC server
-		server := rpc.NewServer(node, logger)
+		server := rpc.NewServer(node, config.RPC, logger)
 		err = server.Start()
 		if err != nil {
 			return fmt.Errorf("failed to launch rpc server: %v", err)
