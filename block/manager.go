@@ -147,11 +147,7 @@ func (m *Manager) submitBlocksToDA(ctx context.Context) error {
 }
 
 func (m *Manager) createBlock(height uint64) (*types.Block, error) {
-	// TODO: mempoolからblockを生成する
-	return &types.Block{
-		Header: types.Header{BaseHeader: types.BaseHeader{Height: height}},
-		Txs:    []types.Tx{[]byte("TODO")},
-	}, nil
+	return m.executor.CreateBlock(height)
 }
 
 func (m *Manager) applyBlock(ctx context.Context, block *types.Block) (*abci.ResponseFinalizeBlock, error) {

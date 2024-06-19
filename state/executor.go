@@ -23,9 +23,12 @@ func NewBlockExecutor(proxyApp proxy.AppConnConsensus, logger log.Logger) *Block
 }
 
 // CreateBlock gets transactions from mempool and builds a block.
-func (be *BlockExecutor) CreateBlock() error {
+func (be *BlockExecutor) CreateBlock(height uint64) (*types.Block, error) {
 	// TODO: mempoolからtransactionを取得し、blockを作成する
-	return nil
+	return &types.Block{
+		Header: types.Header{BaseHeader: types.BaseHeader{Height: height}},
+		Txs:    []types.Tx{[]byte("TODO")},
+	}, nil
 }
 
 // ApplyBlock executes the block
